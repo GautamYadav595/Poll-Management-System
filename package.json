@@ -16,6 +16,7 @@
     "vue": "latest"
   },
   "dependencies": {
-    "firebase": "^11.3.1"
+    "firebase": "^11.3.1",
+    "pinia": "^3.0.1"
   }
 }

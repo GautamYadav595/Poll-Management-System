@@ -1,7 +1,12 @@
+<script setup >
+import Navigation from './components/navigation.vue';
+
+</script>
+
 <template>
-  <div>
+   <NuxtLayout class="bg-white max-h-full max-w-full">
     <NuxtPage />
-  </div>
+  </NuxtLayout>
 </template>
 
 

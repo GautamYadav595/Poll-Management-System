@@ -1,53 +1,36 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex items-center justify-center ">
-  <UForm :schema="schema"  class="space-y-4 w-full max-w-md p-6 bg-white rounded-lg shadow-lg" @submit="handleLogin">
-    <h1 class="text-3xl font-semibold text-center mb-6">Signup</h1>
-    <UFormGroup label="Email" name="email">
-      <UInput v-model="email"  required/>
-    </UFormGroup>
-
-    <UFormGroup label="Password" name="password" >
-      <UInput v-model="password" type="password" required/>
-    </UFormGroup>
-
-    <UButton type="submit">
-      Submit
-    </UButton>
-    <div class="text-center mt-4">
-  <p class="text-sm">
-    Have an account?
-    <NuxtLink to="/login" class="text-blue-600">Login</NuxtLink>
-  </p>
-</div>
-  </UForm>
-</div>
+  <!-- <div class="min-h-screen flex items-center justify-center">
+    <UForm @submit="handleSignup" class="max-w-md bg-white p-6 shadow-lg rounded-lg">
+      <h2 class="text-center text-xl font-bold">Signup</h2>
+      <UInput v-model="email" placeholder="Email" />
+      <UInput v-model="password" type="password" placeholder="Password" />
+      <UButton type="submit">Signup</UButton>
+    </UForm>
+  </div> -->
+  <div>
+    <RegisterForm />
+  </div>
 </template>
 
-
 <script setup>
-import { ref } from "vue";
-import { useAuth } from "~/composables/useAuth";
+import RegisterForm from '~/components/Auth/RegisterForm.vue'
+</script>
 
-const email = ref("");
-const password = ref("");
+
+<!-- <script setup>
+import { ref } from 'vue';
+import { useAuth } from '~/composables/useAuth';
+
+const email = ref('');
+const password = ref('');
 const { register } = useAuth();
 
 const handleSignup = async () => {
   try {
     await register(email.value, password.value);
-    alert("Account Created! Now login.");
+    alert('Signup successful');
   } catch (error) {
     alert(error.message);
   }
 };
-</script>
-
-
-
-<style scoped>
-.auth-container {
-  width: 300px;
-  margin: auto;
-  text-align: center;
-}
-</style>
+</script> -->

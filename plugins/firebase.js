@@ -1,19 +1,24 @@
 import { defineNuxtPlugin } from "#app";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCc356c8coQgt1sSyR9lQLpiFYMr9n1Liw",
-  authDomain: "poll-management-system-7f756.firebaseapp.com",
-  projectId: "poll-management-system-7f756",
-  storageBucket: "poll-management-system-7f756.appspot.com", 
-  messagingSenderId: "438555198200",
-  appId: "1:438555198200:web:dc0e59104011671ff9310d"
-};
-
+import { getFirestore } from "firebase/firestore";
+import config from "~/utils/firebaseConfig";
 
 export default defineNuxtPlugin((nuxtApp) => {
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(config);
   const auth = getAuth(app);
+  const db = getFirestore(app);
+
   nuxtApp.provide("auth", auth);
+  nuxtApp.provide("db", db);
 });
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase services
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ✅ Correctly export auth & db
+export { auth, db };

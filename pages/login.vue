@@ -1,44 +1,42 @@
+<script setup >
+import LoginForm from '~/components/Auth/LoginForm.vue';
+
+
+</script>
+
 <template>
-  <div class="min-h-screen bg-gray-100 flex items-center justify-center ">
-  <UForm :schema="schema"  class="space-y-4 w-full max-w-md p-6 bg-white rounded-lg shadow-lg" @submit="handleLogin">
-    <h1 class="text-3xl font-semibold text-center mb-6">Login</h1>
-    <UFormGroup label="Email" name="email">
-      <UInput v-model="email"  required/>
-    </UFormGroup>
-
-    <UFormGroup label="Password" name="password" >
-      <UInput v-model="password" type="password" required/>
-    </UFormGroup>
-
-    <UButton type="submit">
-      Submit
-    </UButton>
-    <div class="text-center mt-4">
-  <p class="text-sm">
-    Don't have an account?
-    <NuxtLink to="/Signup" class="text-blue-600">Sign up</NuxtLink>
-  </p>
-</div>
-  </UForm>
-</div>
+  <!-- <div class="min-h-screen flex items-center justify-center">
+    <UForm @submit="handleLogin" class="max-w-md bg-white p-6 shadow-lg rounded-lg">
+      <h2 class="text-center text-xl font-bold">Login</h2>
+      <UInput v-model="email" placeholder="Email" />
+      <UInput v-model="password" type="password" placeholder="Password" />
+      <UButton type="submit">Login</UButton>
+    </UForm>
+  </div> -->
+  <div>
+    <LoginForm />
+  </div>
 </template>
 
-<script setup>
+<!-- <script setup>
 import { ref } from 'vue';
 import { useAuth } from '~/composables/useAuth';
 
+
+
 const email = ref('');
 const password = ref('');
-const { login } = useAuth();
+const { login, register } = useAuth();
 
 const handleLogin = async () => {
-  try {
-    await login(email.value, password.value);
-    alert('Login successful');
-  } catch (error) {
-    alert(error.message);
-  }
-};
-</script>
-
-
+    try {
+      await login(email.value, password.value);
+      
+      alert('Login successful');
+          authStore.setUser(user);
+      navigateTo('/admin')
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+</script> -->
