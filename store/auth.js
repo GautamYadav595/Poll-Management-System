@@ -1,42 +1,50 @@
 import { defineStore } from "pinia";
+import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { navigateTo } from "#app"; 
+import firebaseConfig from "@/utils/firebaseConfig"; 
 
-const auth = getAuth();
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
-    loggedIn: false,
-    isAdmin: false,  // New state for admin access
+    isAdmin: false,
+    isAuthReady: false,
   }),
+
   actions: {
     setUser(user) {
       this.user = user;
-      this.loggedIn = !!user;
-      this.isAdmin = user?.email === "test@admin.com"; // Set admin status based on email
+      this.isAdmin = user?.email === "test@admin.com";
+      console.log("Checking before refreshing the admin.vue page")
+      this.isAuthReady = true; 
     },
 
     async login(email, password) {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        this.setUser(user);
+        this.setUser(userCredential.user);
       } catch (error) {
         throw new Error("Login failed: " + error.message);
       }
     },
 
-    async logout() {
-      await signOut(auth);
-      this.setUser(null);
-      alert("You are logged out Succesfully")
-      useRouter().push("/");
-    },
-
-    initAuth() {
-      onAuthStateChanged(auth, (user) => {
-        this.setUser(user);
+    
+    async initAuth() {
+      console.log("Starting initAuth()...");
+      return new Promise((resolve) => {
+        onAuthStateChanged(auth, (user) => {
+          console.log("Firebase Auth State Changing here in initAuth:", user ? user.uid : "No user");
+          this.setUser(user);
+          this.isAuthReady = true; 
+          console.log(" isAuthReady is set to true");
+          resolve(user);
+        });
       });
-    },
+    }
+    
   },
 });

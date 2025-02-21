@@ -1,4 +1,4 @@
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { auth, db } from "@/plugins/firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -16,6 +16,7 @@ export function useAuth() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       user.value = userCredential.user;
+      console.log("Login User credentials" + user.value)
       return userCredential.user;
     } catch (error) {
       console.error("Login error:", error.message);
@@ -34,24 +35,16 @@ export function useAuth() {
     }
   };
 
-  const logout = async () => {
-    await signOut(auth);
-    user.value = null;
-  };
+   const logout = async () => {
+    console.log("User is getting logged out")
+     await signOut(auth);
+     user.value = null;
+     console.log(user.value)
+     alert("You are logged out successfully");
+     navigateTo("/")
+   };
 
-  const getCurrentUser = () => user.value; // Now always up-to-date
+  const getCurrentUser = () => user.value; 
 
-  const isAdmin = async () => {
-    if (!user.value) return false;
-
-    try {
-      const userDoc = await getDoc(doc(db, "users", user.value.uid));
-      return userDoc.exists() && userDoc.data().role === "admin";
-    } catch (error) {
-      console.error("Error fetching user role:", error);
-      return false;
-    }
-  };
-
-  return { login, register, logout, getCurrentUser, isAdmin };
+  return { login, register, logout, getCurrentUser };
 }

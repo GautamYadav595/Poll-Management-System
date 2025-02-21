@@ -3,10 +3,13 @@ import Navigation from './components/navigation.vue';
 
 </script>
 
+
 <template>
-   <NuxtLayout class="bg-white max-h-full max-w-full">
+  <ClientOnly>
+   <NuxtLayout >
     <NuxtPage />
   </NuxtLayout>
+</ClientOnly>
 </template>
 
 

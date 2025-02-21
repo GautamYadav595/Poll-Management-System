@@ -1,5 +1,5 @@
 import { db } from "@/plugins/firebase";
-import { collection, addDoc, updateDoc, doc, getDocs, onSnapshot, deleteDoc, arrayUnion, increment, getDoc } from "firebase/firestore";
+import { collection, addDoc, updateDoc, doc, getDocs, onSnapshot, deleteDoc, arrayUnion, increment, getDoc} from "firebase/firestore";
 import { ref } from "vue";
 
 export function usePolls() {
@@ -41,6 +41,27 @@ export function usePolls() {
     await updateDoc(pollRef, updatedData);
   };
 
+  const updatePollData = async (pollId, pollData) => {
+    const pollRef = doc(db, "polls", pollId);
+    try {
+      await updateDoc(pollRef, {
+        title: pollData.title,
+        options: [...pollData.options], 
+      });
+      
+      const updatedSnapshot = await getDoc(pollRef);
+      const updatedPoll = { id: updatedSnapshot.id, ...updatedSnapshot.data() };
+      polls.value = polls.value.map((p) => p.id = pollId ? updatedPoll : p);
+
+      console.log(polls.value);
+      return updatedPoll;
+  
+    } catch (error) {
+      console.error("Error updating poll:", error);
+      throw error;
+    }
+  };
+  
   // Delete a poll
   const deletePoll = async (pollId) => {
     await deleteDoc(doc(db, "polls", pollId));
@@ -61,27 +82,25 @@ export function usePolls() {
       const pollSnapshot = await getDoc(pollRef);
       const pollData = pollSnapshot.data();
 
-      // Ensure votes and votedUsers are properly initialized
+      // votes and votedUsers are properly set
       if (!pollData.votes) {
-        pollData.votes = {}; // Initialize votes if missing
+        pollData.votes = {}; // set votes if missing
       }
       if (!pollData.votedUsers) {
-        pollData.votedUsers = []; // Initialize votedUsers if missing
+        pollData.votedUsers = []; // set votedUsers if missing
       }
 
       // Start a Firestore update
       await updateDoc(pollRef, {
-        // Increment the vote count for the selected option
-        [`votes.${selectedOption}`]: increment(1), // Fixed the dynamic field syntax
-        // Add the current user to the votedUsers array
-        votedUsers: arrayUnion(userId),
+        [`votes.${selectedOption}`]: increment(1),
+        votedUsers: arrayUnion(userId), 
       });
-
+      
       console.log("Vote recorded successfully");
     } catch (error) {
       console.error("Error voting: You have voted already!");
     }
   };
 
-  return { polls, getPolls, subscribeToPolls, createPoll, updatePoll, deletePoll, voteOnPoll };
+  return { polls, getPolls, subscribeToPolls, createPoll, updatePoll, deletePoll, voteOnPoll, updatePollData};
 }

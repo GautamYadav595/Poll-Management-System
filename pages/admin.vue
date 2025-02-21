@@ -1,51 +1,68 @@
 <template>
-  <div class="max-h-full max-w-full bg-gray-100 flex flex-col items-center">
-    <h2 class="text-3xl font-bold text-gray-800 mb-6">{{ isEditMode ? 'Edit Poll' : 'Create Poll' }}</h2>
+  <div class="min-h-screen min-w-screen bg-white">
+    <div class="max-h-full max-w-full flex flex-col items-center bg-white">
+      <h2 class="text-3xl font-bold text-gray-800 mb-6">
+        {{ isEditMode ? "Edit Poll" : "Create Poll" }}
+      </h2>
 
-    <!-- Create Poll Button -->
-    <UButton @click="showPollForm = true" class="bg-blue-500 text-white px-5 py-2 rounded-lg hover:bg-blue-600 transition">
-      Create Poll
-    </UButton>
+      <UButton @click="openCreatePollForm"> Create Poll </UButton>
 
-    <!-- Poll Creation Form (Modal) -->
-    <UModal v-model="showPollForm">
-      <div class="p-6 bg-white rounded-xl shadow-lg w-[500px]">
-        <h3 class="text-2xl font-semibold text-gray-800 mb-4">{{ isEditMode ? 'Edit Poll' : 'Create New Poll' }}</h3>
-
-        <UForm @submit="submitPoll" class="space-y-4">
-          <!-- Poll Title -->
-          <UFormGroup label="Poll Title">
-            <UInput v-model="poll.title" required class="w-full px-4 py-2 border rounded-lg" />
-          </UFormGroup>
-
-          <!-- Poll Options -->
-          <div v-for="(option, index) in inputoptions" :key="index">
-            <UFormGroup :label="'Option ' + (index + 1)">
-              <UInput v-model="poll.options[index]" required class="w-full px-4 py-2 border rounded-lg" />
+      <UModal v-model="showPollForm" :ui="{ background: 'bg-white' }">
+        <div class="p-6 bg-white rounded-sm shadow-lg w-[570px]">
+          <h3 class="text-2xl font-semibold text-gray-800 mb-4">
+            {{ isEditMode ? "Edit Poll" : "Create New Poll" }}
+          </h3>
+          <UForm v-on:submit.prevent="">
+            <UFormGroup label="Poll Title">
+              <UInput v-model="poll.title" required />
             </UFormGroup>
-          </div>
 
-          <!-- Button to add more options -->
-          <UButton @click="handleInputOptions" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-            Add Option
-          </UButton>
+            <div
+              v-for="(option, index) in poll.options"
+              :key="index"
+              class="items-center flex justify-between"
+            >
+              <div>
+                <UFormGroup :label="'Option ' + (index + 1)">
+                  <UInput
+                    v-model="poll.options[index]"
+                   
+                    v-on:keydown.enter.prevent="handleEnterKey(index)"
+                    required
+                  />
+                </UFormGroup>
+              </div>
+              <div class="flex justify-between gap-3 mt-1">
+                <button
+                  @click="editPoll(pollId)"
+                  class="text-black hover:text-blue-700"
+                >
+                  <Icon name="mdi:pencil-outline" size="24px" />
+                </button>
+                <button
+                  class="text-black border p-1 rounded-md"
+                  v-on:click="deleteOption(index)"
+                >
+                  <Icon name="mdi:trash-can-outline" size="24px" />
+                </button>
+              </div>
+            </div>
 
-          <!-- Form Buttons -->
-          <div class="flex justify-end space-x-3 mt-4">
-            <UButton color="red" @click="showPollForm = false" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
-              Cancel
-            </UButton>
-            <UButton type="submit" color="green" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
-              {{ isEditMode ? 'Update Poll' : 'Submit' }}
-            </UButton>
-          </div>
-        </UForm>
+            <UButton @click.prevent="handleInputOptions"> Add Option </UButton>
+
+            <div class="flex justify-end space-x-3 mt-4">
+              <UButton @click="resetForm"> Cancel </UButton>
+              <UButton @click="submitPoll" type="submit" color="green">
+                {{ isEditMode ? "Update Poll" : "Submit" }}
+              </UButton>
+            </div>
+          </UForm>
+        </div>
+      </UModal>
+
+      <div class="w-full max-w-6xl mt-6">
+        <PollList @editPoll="editPoll" />
       </div>
-    </UModal>
-
-    <!-- Poll List Grid -->
-    <div class="w-full max-w-6xl mt-6">
-      <PollList @editPoll="editPoll" />
     </div>
   </div>
 </template>
@@ -54,57 +71,96 @@
 import { ref } from "vue";
 import { usePolls } from "~/composables/usePolls";
 import PollList from "~/components/Admin/PollList.vue";
+import { onMounted, onUnmounted } from "vue";
 
 definePageMeta({
   middleware: "auth",
 });
-
-const { createPoll, updatePoll } = usePolls();
+const unsubscribe = ref(null);
+const { createPoll, updatePollData, polls, getPolls, subscribeToPolls } =
+  usePolls();
 const showPollForm = ref(false);
-const isEditMode = ref(false); 
-const inputoptions = ref([]);
-const poll = ref({
-  title: "",
-  options: [],
+const isEditMode = ref(false);
+const poll = ref({ id: null, title: "", options: [""] });
+const isEditingInput = false;
+
+onMounted(() => {
+  unsubscribe.value = subscribeToPolls((updatedPolls) => {
+    polls.value = updatedPolls;
+  });
 });
 
+onUnmounted(() => {
+  if (unsubscribe.value) unsubscribe.value();
+});
+
+const openCreatePollForm = () => {
+  resetForm();
+  showPollForm.value = true;
+};
+
+
 const editPoll = (pollData) => {
+  
+  console.log("Editing poll:", pollData);
   isEditMode.value = true;
-  poll.value = { ...pollData };
-  inputoptions.value = pollData.options;
+  poll.value = {
+    id: pollData.id,
+    title: pollData.title,
+    options: [...pollData.options],
+  };
   showPollForm.value = true;
 };
 
 const handleInputOptions = () => {
-  inputoptions.value.push(""); 
+  console.log("ENter button clicked");
+  poll.value.options.push("");
+};
+const handleEnterKey = (index) => {
+  console.log("Enter botton pressed");
+  poll.value.options.push("");
+};
+
+const deleteOption = (index) => {
+  console.log("Delete button clicked");
+  poll.value.options.splice(index, 1);
+};
+
+const resetForm = () => {
+  poll.value = { id: null, title: "", options: [""] };
+  showPollForm.value = false;
+  isEditMode.value = false;
 };
 
 const submitPoll = async () => {
-  if (!poll.value.title || poll.value.options.some(opt => !opt.trim())) {
+  if (!poll.value.title || poll.value.options.some((opt) => !opt.trim())) {
     alert("Please fill out all fields.");
     return;
   }
 
   try {
-    const newPoll = {
-      title: poll.value.title,
-      options: poll.value.options,
-      votes: Object.fromEntries(poll.value.options.map(opt => [opt, 0])),
-      createdAt: new Date(),
-    };
-
     if (isEditMode.value) {
-      await updatePoll(poll.value.id, newPoll); 
+      console.log("Updating poll in Firestore:", poll.value);
+      const updatedPoll = await updatePollData(poll.value.id, {
+        title: poll.value.title,
+        options: [...poll.value.options],
+      });
+
+      console.log(updatedPoll, "admin data");
+
       alert("Poll updated successfully!");
     } else {
-      await createPoll(newPoll); 
+      const newPoll = {
+        title: poll.value.title,
+        options: [...poll.value.options],
+        votes: Object.fromEntries(poll.value.options.map((opt) => [opt, 0])),
+        createdAt: new Date(),
+      };
+      await createPoll(newPoll);
       alert("Poll created successfully!");
     }
 
-    poll.value = { title: "", options: [""] };
-    inputoptions.value = [];
-    showPollForm.value = false;
-    isEditMode.value = false;
+    resetForm();
   } catch (error) {
     console.error("Error creating/updating poll:", error);
     alert("Failed to create/update poll: " + error.message);
